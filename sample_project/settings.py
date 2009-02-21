@@ -78,7 +78,11 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     
+    # external
     'dapi',
+    
+    # local
+    'products',
 )
 
 try:
