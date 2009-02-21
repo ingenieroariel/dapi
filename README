@@ -1,0 +1,12 @@
+== Dapi ==
+
+Dapi (django-api) is a RESTful API based on the same principles that made
+the Django Admin so successful
+
+It is still in the conception stage, here are some of the planned features:
+
+ * Class based, apps have classes per model (ala Admin)
+ * It would follow much of the same convention the admin takes
+ * A user can multiple apis per say which a single api can have its own
+ authentication method for support for both http basic/digest, oauth for example
+ * Will support both 1.0.X and will at least consider the new url routing features in 1.1
