@@ -1,2 +1,6 @@
 *.pyc
 local_settings.py
+*.egg
+*.egg-info
+pip-log.txt
+build
