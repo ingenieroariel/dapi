@@ -5,6 +5,14 @@ from django.http import HttpResponse
 from django.db.models.base import ModelBase
 
 
+class AlreadyRegistered(Exception):
+    pass
+
+
+class NotRegistered(Exception):
+    pass
+
+
 class Api(object):
     
     def __init__(self):
