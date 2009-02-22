@@ -41,7 +41,7 @@ class Api(object):
                     response = api_instance.handle_request(request)
                     break
             if response is None:
-                response = HttpResponse("not found")
+                response = HttpResponse(status=404)
             return response
 
 
