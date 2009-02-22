@@ -6,4 +6,4 @@ from products.models import Product
 class ProductApi(dapi.ModelApi):
     pass
 
-dapi.api.register(Product, ProductApi)
+dapi.api.register(ProductApi(Product))

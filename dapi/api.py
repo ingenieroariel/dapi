@@ -1,3 +1,4 @@
+
 import re
 
 from django.conf import settings
@@ -5,53 +6,18 @@ from django.http import HttpResponse
 from django.db.models.base import ModelBase
 
 
-class AlreadyRegistered(Exception):
-    pass
-
-
-class NotRegistered(Exception):
-    pass
-
-
 class Api(object):
     
     def __init__(self):
-        self._registry = {} # model_class class -> api_class instance
+        self._registry = []
             
-    def register(self, model_or_iterable, api_class=None, **options):  
-          """
-          Registers the given model(s) with the given api class.
-            
-          The model(s) should be Model classes, not
-          instances.
-  
-          If an api class isn't given, it will use ModelAdmin (the default
-          api options). If keyword arguments are given -- e.g., list_display --
-          they'll be applied as options to the api class.
-            
-          If a model is already registered, this will raise AlreadyRegistered.
-          """
-          if not api_class:
-              api_class = ModelApi
-          if isinstance(model_or_iterable, ModelBase):
-               model_or_iterable = [model_or_iterable]
-          for model in model_or_iterable:
-              if model in self._registry:
-                  raise AlreadyRegistered('The model %s is already registered' % model.__name__)
-              self._registry[model] = api_class(model, self)
-
-    def unregister(self, model_or_iterable):
-        """
-        Unregisters the given model(s).
-
-        If a model isn't already registered, this will raise NotRegistered.
-        """
-        if isinstance(model_or_iterable, ModelBase):
-            model_or_iterable = [model_or_iterable]
-        for model in model_or_iterable:
-            if model not in self._registry:
-                raise NotRegistered('The model %s is not registered' % model.__name__)
-            del self._registry[model]
+    def register(self, api_instance):
+        if not isinstance(api_instance, CollectionApi):
+            if issubclass(api_instance, CollectionApi):
+                api_instance = api_instance()
+            else:
+                raise TypeError("API instance is not an instance or subclass of CollectionApi")
+        self._registry.append(api_instance)
         
     def root(self, request, url):
         url = url.rstrip("/")
@@ -64,13 +30,44 @@ class Api(object):
         if bits[1] == "docs":
             return HttpResponse("documentation")
         else:
-            return HttpResponse(repr(rest_of_url))
+            response = None
+            for api_instance in self._registry:
+                if callable(api_instance.url):
+                    url = api_instance.url()
+                else:
+                    url = api_instance.url
+                match = url.match(rest_of_url)
+                if match:
+                    response = HttpResponse("found a match")
+                    break
+            if response is None:
+                response = HttpResponse("not found")
+            return response
 
-class ModelApi(object):
+
+class CollectionApi(object):
+    """
+    An API that represents a collection of objects.
+    """
     
-    def __init__(self, model, api):
+    def url(self):
+        raise NotImplemented()
+
+
+class ModelApi(CollectionApi):
+    """
+    A CollectionApi that knows how to work with a single given model.
+    """
+    
+    def __init__(self, model, url_override=None):
         self.model = model
-        self.api = api
+        self.opts = model._meta
+        self.url_override = url_override
+    
+    def url(self):
+        if self.url_override:
+            return re.compile(self.url_override)
+        return re.compile(r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower()))
 
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
