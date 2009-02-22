@@ -9,10 +9,6 @@ class Api(object):
     
     def __init__(self):
         self._registry = {} # model_class class -> api_class instance
-        # TODO Root path is used to calculate urls under the old root() method
-        # in order to maintain backwards compatibility we are leaving that in
-        # so root_path isn't needed, not sure what to do about this.
-        self.root_path = 'api/'
             
     def register(self, model_or_iterable, api_class=None, **options):  
           """
