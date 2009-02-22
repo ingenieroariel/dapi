@@ -42,7 +42,7 @@ def autodiscover():
         # Step 2: use imp.find_module to find the app's admin.py. For some
         # reason imp.find_module raises ImportError if the app can't be found
         # but doesn't actually try to import the module. So skip this app if
-        # its admin.py doesn't exist
+        # its api.py doesn't exist
         try:
             imp.find_module('api', app_path)
         except ImportError:
