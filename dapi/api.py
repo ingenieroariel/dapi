@@ -51,7 +51,10 @@ class Api(object):
         
     def root(self, request, url):
         return HttpResponse("hello world")
- 
+
+class ModelApi(object):
+    pass
+
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
 api = Api()
