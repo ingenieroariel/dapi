@@ -9,16 +9,12 @@ from dapi import ModelApi
 
 class Api(object):
     
-    def __init__(self, name=None):
+    def __init__(self):
         self._registry = {} # model_class class -> api_class instance
         # TODO Root path is used to calculate urls under the old root() method
         # in order to maintain backwards compatibility we are leaving that in
         # so root_path isn't needed, not sure what to do about this.
         self.root_path = 'api/'
-        if name is None:
-            name = ''
-        else:
-            name += '_'
             
     def register(self, model_or_iterable, api_class=None, **options):  
           """
@@ -33,17 +29,13 @@ class Api(object):
             
           If a model is already registered, this will raise AlreadyRegistered.
           """
-         
           if not api_class:
               api_class = ModelApi
-
           if isinstance(model_or_iterable, ModelBase):
                model_or_iterable = [model_or_iterable]
-
           for model in model_or_iterable:
               if model in self._registry:
                   raise AlreadyRegistered('The model %s is already registered' % model.__name__)
-
               self._registry[model] = api_class(model, self)
 
     def unregister(self, model_or_iterable):
@@ -54,10 +46,10 @@ class Api(object):
         """
         if isinstance(model_or_iterable, ModelBase):
                 model_or_iterable = [model_or_iterable]
-            for model in model_or_iterable:
-                if model not in self._registry:
-                    raise NotRegistered('The model %s is not registered' % model.__name__)
-                del self._registry[model]
+        for model in model_or_iterable:
+            if model not in self._registry:
+                raise NotRegistered('The model %s is not registered' % model.__name__)
+            del self._registry[model]
         
     def root(self, request, url):
         return HttpResponse("hello world")
