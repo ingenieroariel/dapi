@@ -1,6 +1,6 @@
 
 import dapi
-from dapi.auth.oauth import AuthOAuth
+from dapi.auth.doauth import AuthOAuth
 
 class OAuthApi(dapi.Api):
     auth = AuthOAuth()
