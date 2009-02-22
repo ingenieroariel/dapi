@@ -93,4 +93,4 @@ class ModelApi(CollectionApi):
 
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
-api = Api()
+default_api = Api()

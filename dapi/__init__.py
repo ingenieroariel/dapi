@@ -1,5 +1,5 @@
 
-from dapi.api import Api, ModelApi, api
+from dapi.api import Api, ModelApi, default_api
 
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
 # True while running, and False when it finishes.
