@@ -5,8 +5,11 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.db.models.base import ModelBase
 
+from dapi.auth import AuthPassThru
+
 
 class Api(object):
+    auth = AuthPassThru()
     
     def __init__(self):
         self._registry = []
@@ -30,6 +33,9 @@ class Api(object):
         if bits[1] == "docs":
             return HttpResponse("documentation")
         else:
+            auth_response = self.auth.check_request(request)
+            if auth_response:
+                return auth_response
             response = None
             for api_instance in self._registry:
                 if callable(api_instance.url):
