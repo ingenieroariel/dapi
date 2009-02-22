@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.db.models.base import ModelBase
 
 from dapi.auth import AuthPassThru
+from dapi.responders import get_responder
+from dapi.objects import CollectionObject, ModelCollectionObject
 
 
 class Api(object):
@@ -47,7 +49,8 @@ class Api(object):
                     url = api_instance.url
                 match = url.match(rest_of_url)
                 if match:
-                    response = api_instance.handle_request(request)
+                    format = match.groupdict().get("format")
+                    response = api_instance.handle_request(request, format)
                     break
             if response is None:
                 response = HttpResponse(status=404)
@@ -58,22 +61,25 @@ class CollectionApi(object):
     """
     An API that represents a collection of objects.
     """
+    object_class = CollectionObject
     
     def url(self):
         # @@@ do something sensible
         raise NotImplementedError()
     
-    def handle_request(self, request):
-        # @@@ serialize the return objects
-        self.objects(request)
-        return HttpResponse("something good happened.")
+    def handle_request(self, request, format=None):
+        if format is None:
+            responder = self.responder_class()
+        else:
+            responder = get_responder(format)
+        return responder.handle_request(request, self)
         
-
 
 class ModelApi(CollectionApi):
     """
     A CollectionApi that knows how to work with a single given model.
     """
+    object_class = ModelCollectionObject
     
     def __init__(self, model, url_override=None):
         self.model = model
