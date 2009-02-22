@@ -38,7 +38,7 @@ class Api(object):
                     url = api_instance.url
                 match = url.match(rest_of_url)
                 if match:
-                    response = HttpResponse("found a match")
+                    response = api_instance.handle_request(request)
                     break
             if response is None:
                 response = HttpResponse("not found")
@@ -51,7 +51,12 @@ class CollectionApi(object):
     """
     
     def url(self):
-        raise NotImplemented()
+        # @@@ do something sensible
+        raise NotImplementedError()
+    
+    def handle_request(self, request):
+        # @@@ do something sensible
+        raise NotImplementedError()
 
 
 class ModelApi(CollectionApi):
@@ -68,6 +73,9 @@ class ModelApi(CollectionApi):
         if self.url_override:
             return re.compile(self.url_override)
         return re.compile(r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower()))
+    
+    def handle_request(self, request):
+        return HttpResponse("%s responding" % self.model.__name__.lower())
 
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
