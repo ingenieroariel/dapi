@@ -1,6 +1,7 @@
 from django.conf.urls.defaults import *
 
-from dapi import api
+import dapi
+dapi.autodiscover()
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
@@ -17,5 +18,5 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # (r'^admin/(.*)', admin.site.root),
-    (r'^api/(.*)', api.root),
+    (r'^api/(.*)', dapi.api.root),
 )
