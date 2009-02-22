@@ -11,8 +11,11 @@ from dapi.auth import AuthPassThru
 class Api(object):
     auth = AuthPassThru()
     
-    def __init__(self):
+    def __init__(self, inherits=None):
         self._registry = []
+        # inheritance of another api
+        if inherits is not None:
+            self._registry.extend(inherits._registry)
             
     def register(self, api_instance):
         if not isinstance(api_instance, CollectionApi):

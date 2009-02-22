@@ -5,4 +5,4 @@ from dapi.auth.oauth import AuthOAuth
 class OAuthApi(dapi.Api):
     auth = AuthOAuth()
 
-oauth_api = OAuthApi()
+oauth_api = OAuthApi(inherits=dapi.api)
