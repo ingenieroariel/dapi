@@ -57,11 +57,11 @@ class ApiSite(object):
         If a model isn't already registered, this will raise NotRegistered.
         """
         if isinstance(model_or_iterable, ModelBase):
-                model_or_iterable = [model_or_iterable]
-            for model in model_or_iterable:
-                if model not in self._registry:
-                    raise NotRegistered('The model %s is not registered' % model.__name__)
-                del self._registry[model]
+            model_or_iterable = [model_or_iterable]
+        for model in model_or_iterable:
+            if model not in self._registry:
+                raise NotRegistered('The model %s is not registered' % model.__name__)
+            del self._registry[model]
     def has_permission(self, request):
          """
          Returns True if the given HttpRequest has permission to
@@ -79,15 +79,12 @@ class ApiSite(object):
         from django.contrib.contenttypes.models import ContentType
 
         if not ContentType._meta.installed:
-            raise ImproperlyConfigured("Put 'django.contrib.contenttypes' in your INSTALLED_APPS
-            setting in order to use dapi.")
+            raise ImproperlyConfigured("Put 'django.contrib.contenttypes' in your INSTALLED_APPS setting in order to use dapi.")
 
         if 'django.core.context_processors.auth' not in settings.TEMPLATE_CONTEXT_PROCESSORS:
-            raise ImproperlyConfigured("Put 'django.core.context_processors.auth' in your
-                TEMPLATE_CONTEXT_PROCESSORS setting in order to use the
-                api application.")
+            raise ImproperlyConfigured("Put 'django.core.context_processors.auth' in your TEMPLATE_CONTEXT_PROCESSORS setting in order to use the api application.")
 
-        def api_view(self, view):
+    def api_view(self, view):
         """
         Decorator to create an "api view attached to this ``ApiSite``. This
         wraps the view and provides permission checking by calling
@@ -104,13 +101,15 @@ class ApiSite(object):
                 )
                 return urls
         """
+
         def inner(request, *args, **kwargs):
             if not self.has_permission(request):
                 return self.login(request)
             return view(request, *args, **kwargs)
         return update_wrapper(inner, view)
+
     def get_urls(self):
-        from django.conf.urls.defaults import patterns, url,include
+        from django.conf.urls.defaults import patterns, url, include
         
         def wrap(view):
             def wrapper(*args, **kwargs):
@@ -123,12 +122,13 @@ class ApiSite(object):
            name='%sapi_index' % self.name),
         url(r'^r/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
             'django.views.defaults.shortcut'),
-       # Add in each model's views.
-    for model, model_api in self._registry.iteritems():
-        urlpatterns += patterns('',
-             url(r'^%s/%s/' % (model._meta.app_label, model._meta.module_name),
-                 include(model_api.urls))
-        )
+    )        
+        # Add in each model's views.
+        for model, model_api in self._registry.iteritems():
+            urlpatterns += patterns('',
+               url(r'^%s/%s/' % (model._meta.app_label, model._meta.module_name),
+               include(model_api.urls))
+            )
         return urlpatterns
        
     def urls(self):
@@ -185,7 +185,7 @@ class ApiSite(object):
             'title': _('Site api'),
             'app_list': app_list,
             'root_path': self.root_path,
-         }
+        }
         context.update(extra_context or {})
         return render_to_response(self.index_template or 'api/index.html', context,
             context_instance=template.RequestContext(request)
@@ -247,46 +247,47 @@ class ApiSite(object):
         This function still exists for backwards-compatibility; it will be
         removed in Django 1.3.
         """
+
         import warnings
         warnings.warn(
             "ApiSite.root() is deprecated; use include(api.site.urls) instead.",
             PendingDeprecationWarning
         )
         
-       #
-       # Again, remember that the following only exists for
-       # backwards-compatibility. Any new URLs, changes to existing URLs, or
-       # whatever need to be done up in get_urls(), above!
-       #
+        #
+        # Again, remember that the following only exists for
+        # backwards-compatibility. Any new URLs, changes to existing URLs, or
+        # whatever need to be done up in get_urls(), above!
+        #
         
-       if request.method == 'GET' and not request.path.endswith('/'):
-           return http.HttpResponseRedirect(request.path + '/')
+        if request.method == 'GET' and not request.path.endswith('/'):
+            return http.HttpResponseRedirect(request.path + '/')
        
-       if settings.DEBUG:
-           self.check_dependencies()
+        if settings.DEBUG:
+            self.check_dependencies()
         
-       # Figure out the api base URL path and stash it for later use
-       self.root_path = re.sub(re.escape(url) + '$', '', request.path)
+        # Figure out the api base URL path and stash it for later use
+        self.root_path = re.sub(re.escape(url) + '$', '', request.path)
         
-       url = url.rstrip('/') # Trim trailing slash, if it exists.
-        
-       # The 'logout' view doesn't require that the person is logged in.
+        url = url.rstrip('/') # Trim trailing slash, if it exists.
          
-       # Check permission to continue or display login form.
-       if not self.has_permission(request):
-           return http.Http404("You are not authenticated, there is no api site for you")
+        # The 'logout' view doesn't require that the person is logged in.
          
-       if url == '':
-           return self.index(request)
-       # URLs starting with 'r/' are for the "View on site" links.
-       elif url.startswith('r/'):
-           from django.contrib.contenttypes.views import shortcut
-           return shortcut(request, *url.split('/')[1:])
-       else:
-           if '/' in url:
-               return self.model_page(request, *url.split('/', 2))
-           else:
-               return self.app_index(request, url)
+        # Check permission to continue or display login form.
+        if not self.has_permission(request):
+            return http.Http404("You are not authenticated, there is no api site for you")
+         
+        if url == '':
+            return self.index(request)
+        # URLs starting with 'r/' are for the "View on site" links.
+        elif url.startswith('r/'):
+            from django.contrib.contenttypes.views import shortcut
+            return shortcut(request, *url.split('/')[1:])
+        else:
+            if '/' in url:
+                return self.model_page(request, *url.split('/', 2))
+            else:
+                return self.app_index(request, url)
     def model_page(self, request, app_label, model_name, rest_of_url=None):
         """
         DEPRECATED. This is the old way of handling a model view on the api
