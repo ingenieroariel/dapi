@@ -47,10 +47,10 @@ class Api(object):
         response = None
         for api_instance in self._registry:
             if callable(api_instance.url):
-                url = api_instance.url()
+                url_regex = api_instance.url()
             else:
-                url = api_instance.url
-            match = url.match(url)
+                url_regex = api_instance.url
+            match = re.match(url_regex, url)
             if match:
                 format = match.groupdict().get("format")
                 response = api_instance.handle_request(request, format)
@@ -91,8 +91,8 @@ class ModelApi(CollectionApi):
     
     def url(self):
         if self.url_override:
-            return re.compile(self.url_override)
-        return re.compile(r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower()))
+            return self.url_override
+        return r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower())
     
     def objects(self, *args, **kwargs):
         return self.queryset(*args, **kwargs).iterator()
