@@ -6,8 +6,6 @@ dapi.autodiscover()
 from django.contrib import admin
 admin.autodiscover()
 
-from sample_project.api import oauth_api
-
 
 urlpatterns = patterns('',
     url(r'^admin/(.*)', admin.site.root),
@@ -23,6 +21,8 @@ else:
     oauth_support = True
 
 if oauth_support:
+    from sample_project.api import oauth_api
+    
     urlpatterns += patterns('',
         url(r'oauth/', include('oauth_provider.urls')),
         url(r'oauth_api/(.*)', oauth_api.root),
