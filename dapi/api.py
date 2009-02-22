@@ -84,10 +84,10 @@ class ModelApi(CollectionApi):
     """
     object_class = ModelCollectionObject
     
-    def __init__(self, model, url_override=None):
+    def __init__(self, model, url=None):
         self.model = model
         self.opts = model._meta
-        self.url_override = url_override
+        self.url_override = url
     
     def url(self):
         if self.url_override:
