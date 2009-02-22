@@ -27,32 +27,31 @@ class ApiSite(object):
             name += '_'
     
     def register(self, model_or_iterable, api_class=None, **options):  
-          """
-          Registers the given model(s) with the given api class.
-            
-          The model(s) should be Model classes, not
-          instances.
-  
-          If an admin class isn't given, it will use ModelAdmin (the default
-          admin options). If keyword arguments are given --
-          e.g., list_display --
-          they'll be applied as options to the admin class.
-            
-          If a model is already registered, this will raise
-          AlreadyRegistered.
-          """
-         
-          if not api_class:
-              api_class = ModelApi
+        """
+        Registers the given model(s) with the given api class.
+        
+        The model(s) should be Model classes, not
+        instances.
 
-          if isinstance(model_or_iterable, ModelBase):
-               model_or_iterable = [model_or_iterable]
+        If an admin class isn't given, it will use ModelAdmin (the default
+        admin options). If keyword arguments are given --
+        e.g., list_display --
+        they'll be applied as options to the admin class.
 
-          for model in model_or_iterable:
-              if model in self._registry:
-                  raise AlreadyRegistered('The model %s is already registered' % model.__name__)
-
-              self._registry[model] = api_class(model, self)
+        If a model is already registered, this will raise
+        AlreadyRegistered.
+        """
+        
+        if not api_class:
+            api_class = ModelApi
+        
+        if isinstance(model_or_iterable, ModelBase):
+            model_or_iterable = [model_or_iterable]
+        
+        for model in model_or_iterable:
+            if model in self._registry:
+                raise AlreadyRegistered('The model %s is already registered' % model.__name__)
+            self._registry[model] = api_class(model, self)
 
     def unregister(self, model_or_iterable):
         """
@@ -61,36 +60,12 @@ class ApiSite(object):
         If a model isn't already registered, this will raise NotRegistered.
         """
         if isinstance(model_or_iterable, ModelBase):
-                model_or_iterable = [model_or_iterable]
-            for model in model_or_iterable:
-                if model not in self._registry:
-                    raise NotRegistered('The model %s is not registered' % model.__name__)
-                del self._registry[model]
-    
-    def has_permission(self, request):
-         """
-         Returns True if the given HttpRequest has permission to
-         *at least one* api method.
-         """
-         return request.user.is_authenticated() and request.user.is_staff
-
-    def check_dependencies(self):
-        """
-        Check that all things needed to run the admin have been correctly installed.
-          
-        The default implementation checks that LogEntry, ContentType and the
-        auth context processor are installed.
-        """
-        from django.contrib.contenttypes.models import ContentType
-
-        if not ContentType._meta.installed:
-            raise ImproperlyConfigured("Put 'django.contrib.contenttypes' in your INSTALLED_APPS
-            setting in order to use dapi.")
-
-        if 'django.core.context_processors.auth' not in settings.TEMPLATE_CONTEXT_PROCESSORS:
-            raise ImproperlyConfigured("Put 'django.core.context_processors.auth' in your
-                TEMPLATE_CONTEXT_PROCESSORS setting in order to use the
-                admin application.")
+            model_or_iterable = [model_or_iterable]
+        
+        for model in model_or_iterable:
+            if model not in self._registry:
+                raise NotRegistered('The model %s is not registered' % model.__name__)
+            del self._registry[model]
 
     def api_view(self, view):
         """
@@ -139,112 +114,8 @@ class ApiSite(object):
     def urls(self):
         return self.get_urls()
     urls = property(urls)
-        
-    def index(self, request, extra_context=None):
-        """
-        Displays the main api index page, which lists all of the installed
-        apps that have been registered in this site.
-        """
-        app_dict = {}
-        user = request.user
-        for model, model_admin in self._registry.items():
-           app_label = model._meta.app_label
-           has_module_perms = user.has_module_perms(app_label)
-            
-           if has_module_perms:
-               perms = {
-                   'add': model_admin.has_add_permission(request),
-                   'change': model_admin.has_change_permission(request),
-                   'delete': model_admin.has_delete_permission(request),
-               }
-               
-               # Check whether user has any perm for this module.
-               # If so, add the module to the model_list.
-               if True in perms.values():
-                    model_dict = {
-                        'name': capfirst(model._meta.verbose_name_plural),
-                        'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
-                        'perms': perms,
-                    }
-                    if app_label in app_dict:
-                        app_dict[app_label]['models'].append(model_dict)
-                    else:
-                        app_dict[app_label] = {
-                            'name': app_label.title(),
-                            'app_url': app_label + '/',
-                            'has_module_perms': has_module_perms,
-                            'models': [model_dict],
-                        }
-        
-        # Sort the apps alphabetically.
-        app_list = app_dict.values()
-
-        # This is not required but nice to have
-        app_list.sort(lambda x, y: cmp(x['name'], y['name']))
-        
-        # Sort the models alphabetically within each app.
-        for app in app_list:
-            app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
-        
-        context = {
-            'title': _('Site api'),
-            'app_list': app_list,
-            'root_path': self.root_path,
-        }
-        context.update(extra_context or {})
-        return render_to_response(self.index_template or 'api/index.html', context,
-            context_instance=template.RequestContext(request)
-        )
-    index = never_cache(index)
-
-    def app_index(self, request, app_label, extra_context=None):
-        user = request.user
-        has_module_perms = user.has_module_perms(app_label)
-        app_dict = {}
-        for model, model_admin in self._registry.items():
-            if app_label == model._meta.app_label:
-                if has_module_perms:
-                    perms = {
-                       'add': user.has_perm("%s.%s" % (app_label, model._meta.get_add_permission())),
-                       'change': user.has_perm("%s.%s" % (app_label, model._meta.get_change_permission())),
-                       'delete': user.has_perm("%s.%s" % (app_label, model._meta.get_delete_permission())),
-                    }
-                    # Check whether user has any perm for this module.
-                    # If so, add the module to the model_list.
-                    if True in perms.values():
-                        model_dict = {
-                            'name': capfirst(model._meta.verbose_name_plural),
-                            'api_url': '%s/' % model.__name__.lower(),
-                            'perms': perms,
-                        }
-                        if app_dict:
-                            app_dict['models'].append(model_dict),
-                        else:
-                            # First time around, now that we know there's
-                            # something to display, add in the necessary meta
-                            # information.
-                            app_dict = {
-                                'name': app_label.title(),
-                                     'app_url': '',
-                                     'has_module_perms': has_module_perms,
-                                     'models': [model_dict],
-                                 }
-            if not app_dict:
-                raise http.Http404('The requested api page does not exist.')
-            # Sort the models alphabetically within each app.
-            app_dict['models'].sort(lambda x, y: cmp(x['name'], y['name']))
-            context = {
-                'title': _('%s administration') % capfirst(app_label),
-                'app_list': [app_dict],
-                'root_path': self.root_path,
-            }
-            context.update(extra_context or {})
-            return render_to_response(self.app_index_template or 'api/app_index.html', context,
-                context_instance=template.RequestContext(request)
-            )   
-
     
-    def root(self, request, url): 
+    def root(self, request, url):
         """
         DEPRECATED. This function is the old way of handling URL resolution, and
         is deprecated in favor of real URL resolution -- see ``get_urls()``.
@@ -292,22 +163,6 @@ class ApiSite(object):
                 return self.model_page(request, *url.split('/', 2))
             else:
                 return self.app_index(request, url)
-    
-    def model_page(self, request, app_label, model_name, rest_of_url=None):
-        """
-        DEPRECATED. This is the old way of handling a model view on the api
-        site; the new views should use get_urls(), above.
-        """
-        from django.db import models
-        model = models.get_model(app_label, model_name)
-        if model is None:
-            raise http.Http404("App %r, model %r, not found." % (app_label, model_name))
-        try:
-            api_obj = self._registry[model]
-        except KeyError:
-            raise http.Http404("This model exists but has not been registered with the api site.")
-        return admin_obj(request, rest_of_url)
-    model_page = never_cache(model_page)   
 
 # This global object represents the default admin site, for the common case.
 # You can instantiate ApiSite in your own code to create a custom api site.
