@@ -239,70 +239,70 @@ class ApiSite(object):
             )   
 
     
-        def root(self, request, url): 
-            """
-            DEPRECATED. This function is the old way of handling URL resolution, and
-            is deprecated in favor of real URL resolution -- see ``get_urls()``.
-            
-            This function still exists for backwards-compatibility; it will be
-            removed in Django 1.3.
-            """
-            import warnings
-            warnings.warn(
-                "ApiSite.root() is deprecated; use include(api.site.urls) instead.",
-                PendingDeprecationWarning
-            )
-           
-            #
-            # Again, remember that the following only exists for
-            # backwards-compatibility. Any new URLs, changes to existing URLs, or
-            # whatever need to be done up in get_urls(), above!
-            #
-            
-            if request.method == 'GET' and not request.path.endswith('/'):
-                return http.HttpResponseRedirect(request.path + '/')
-           
-            if settings.DEBUG:
-                self.check_dependencies()
-           
-            # Figure out the api base URL path and stash it for later use
-            self.root_path = re.sub(re.escape(url) + '$', '', request.path)
-           
-            url = url.rstrip('/') # Trim trailing slash, if it exists.
-           
-            # The 'logout' view doesn't require that the person is logged in.
-            
-            # Check permission to continue or display login form.
-            if not self.has_permission(request):
-                return http.Http404("You are not authenticated, there is no api site for you")
-             
-            if url == '':
-                return self.index(request)
-            # URLs starting with 'r/' are for the "View on site" links.
-            elif url.startswith('r/'):
-                from django.contrib.contenttypes.views import shortcut
-                return shortcut(request, *url.split('/')[1:])
-            else:
-                if '/' in url:
-                    return self.model_page(request, *url.split('/', 2))
-                else:
-                    return self.app_index(request, url)
-        def model_page(self, request, app_label, model_name, rest_of_url=None):
-            """
-            DEPRECATED. This is the old way of handling a model view on the api
-            site; the new views should use get_urls(), above.
-            """
-            from django.db import models
-            model = models.get_model(app_label, model_name)
-            if model is None:
-                raise http.Http404("App %r, model %r, not found." % (app_label, model_name))
-            try:
-                api_obj = self._registry[model]
-            except KeyError:
-                raise http.Http404("This model exists but has not been registered with the api site.")
-            return api_obj(request, rest_of_url)
-        model_page = never_cache(model_page)   
-    
-    # This global object represents the default api site, for the common case.
-    # You can instantiate ApiSite in your own code to create a custom api site.
-    site = ApiSite()
+    def root(self, request, url): 
+        """
+        DEPRECATED. This function is the old way of handling URL resolution, and
+        is deprecated in favor of real URL resolution -- see ``get_urls()``.
+         
+        This function still exists for backwards-compatibility; it will be
+        removed in Django 1.3.
+        """
+        import warnings
+        warnings.warn(
+            "ApiSite.root() is deprecated; use include(api.site.urls) instead.",
+            PendingDeprecationWarning
+        )
+        
+       #
+       # Again, remember that the following only exists for
+       # backwards-compatibility. Any new URLs, changes to existing URLs, or
+       # whatever need to be done up in get_urls(), above!
+       #
+        
+       if request.method == 'GET' and not request.path.endswith('/'):
+           return http.HttpResponseRedirect(request.path + '/')
+       
+       if settings.DEBUG:
+           self.check_dependencies()
+        
+       # Figure out the api base URL path and stash it for later use
+       self.root_path = re.sub(re.escape(url) + '$', '', request.path)
+        
+       url = url.rstrip('/') # Trim trailing slash, if it exists.
+        
+       # The 'logout' view doesn't require that the person is logged in.
+         
+       # Check permission to continue or display login form.
+       if not self.has_permission(request):
+           return http.Http404("You are not authenticated, there is no api site for you")
+         
+       if url == '':
+           return self.index(request)
+       # URLs starting with 'r/' are for the "View on site" links.
+       elif url.startswith('r/'):
+           from django.contrib.contenttypes.views import shortcut
+           return shortcut(request, *url.split('/')[1:])
+       else:
+           if '/' in url:
+               return self.model_page(request, *url.split('/', 2))
+           else:
+               return self.app_index(request, url)
+    def model_page(self, request, app_label, model_name, rest_of_url=None):
+        """
+        DEPRECATED. This is the old way of handling a model view on the api
+        site; the new views should use get_urls(), above.
+        """
+        from django.db import models
+        model = models.get_model(app_label, model_name)
+        if model is None:
+            raise http.Http404("App %r, model %r, not found." % (app_label, model_name))
+        try:
+            api_obj = self._registry[model]
+        except KeyError:
+            raise http.Http404("This model exists but has not been registered with the api site.")
+        return api_obj(request, rest_of_url)
+    model_page = never_cache(model_page)   
+ 
+# This global object represents the default api site, for the common case.
+# You can instantiate ApiSite in your own code to create a custom api site.
+site = ApiSite()
