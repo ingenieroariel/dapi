@@ -38,23 +38,26 @@ class Api(object):
         if bits[1] == "docs":
             return HttpResponse("documentation")
         else:
-            auth_response = self.auth.check_request(request)
-            if auth_response:
-                return auth_response
-            response = None
-            for api_instance in self._registry:
-                if callable(api_instance.url):
-                    url = api_instance.url()
-                else:
-                    url = api_instance.url
-                match = url.match(rest_of_url)
-                if match:
-                    format = match.groupdict().get("format")
-                    response = api_instance.handle_request(request, format)
-                    break
-            if response is None:
-                response = HttpResponse(status=404)
-            return response
+            return self.dispatch(rest_of_url)
+    
+    def dispatch(self, url):
+        auth_response = self.auth.check_request(request)
+        if auth_response:
+            return auth_response
+        response = None
+        for api_instance in self._registry:
+            if callable(api_instance.url):
+                url = api_instance.url()
+            else:
+                url = api_instance.url
+            match = url.match(url)
+            if match:
+                format = match.groupdict().get("format")
+                response = api_instance.handle_request(request, format)
+                break
+        if response is None:
+            response = HttpResponse(status=404)
+        return response
 
 
 class CollectionApi(object):
