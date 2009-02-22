@@ -7,7 +7,7 @@ from django.db.models.base import ModelBase
 from dapi import ModelApi
 
 
-class ApiSite(object):
+class Api(object):
     
     def __init__(self, name=None):
         self._registry = {} # model_class class -> api_class instance
@@ -64,4 +64,4 @@ class ApiSite(object):
  
 # This global object represents the default api site, for the common case.
 # You can instantiate ApiSite in your own code to create a custom api site.
-site = ApiSite()
+site = Api()
