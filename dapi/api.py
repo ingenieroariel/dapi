@@ -92,7 +92,7 @@ class ModelApi(CollectionApi):
         return re.compile(r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower()))
     
     def objects(self, *args, **kwargs):
-        return self.queryset(*args, **kwargs)
+        return self.queryset(*args, **kwargs).iterator()
     
     def queryset(self, request):
         return self.model._default_manager.all()
