@@ -54,7 +54,17 @@ class Api(object):
             del self._registry[model]
         
     def root(self, request, url):
-        return HttpResponse("hello world")
+        url = url.rstrip("/")
+        bits = url.split("/")
+        
+        rest_of_url = "/".join(bits[1:])
+        if not rest_of_url.endswith("/"):
+            rest_of_url = rest_of_url + "/"
+        
+        if bits[1] == "docs":
+            return HttpResponse("documentation")
+        else:
+            return HttpResponse(repr(rest_of_url))
 
 class ModelApi(object):
     
