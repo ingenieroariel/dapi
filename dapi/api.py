@@ -39,7 +39,7 @@ class Api(object):
         If a model isn't already registered, this will raise NotRegistered.
         """
         if isinstance(model_or_iterable, ModelBase):
-                model_or_iterable = [model_or_iterable]
+            model_or_iterable = [model_or_iterable]
         for model in model_or_iterable:
             if model not in self._registry:
                 raise NotRegistered('The model %s is not registered' % model.__name__)
