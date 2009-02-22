@@ -53,7 +53,10 @@ class Api(object):
         return HttpResponse("hello world")
 
 class ModelApi(object):
-    pass
+    
+    def __init__(self, model, api):
+        self.model = model
+        self.api = api
 
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
