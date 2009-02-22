@@ -41,7 +41,7 @@ class Api(object):
     def unregister(self, model_or_iterable):
         """
         Unregisters the given model(s).
-        
+
         If a model isn't already registered, this will raise NotRegistered.
         """
         if isinstance(model_or_iterable, ModelBase):
@@ -54,6 +54,6 @@ class Api(object):
     def root(self, request, url):
         return HttpResponse("hello world")
  
-# This global object represents the default api site, for the common case.
-# You can instantiate ApiSite in your own code to create a custom api site.
+# This global object represents the default API, for the common case.
+# You can instantiate Api in your own code to create a custom API.
 site = Api()
