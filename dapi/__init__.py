@@ -1,7 +1,7 @@
-from dapi.sites import ApiSite, site
+
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
 # True while running, and False when it finishes.
-APILOADING = False
+LOADING = False
  
 def autodiscover():
     """
@@ -14,7 +14,7 @@ def autodiscover():
     # the exception handler to resolve the handler500 view.  This prevents an
     # api.py module with errors from re-registering models and raising a
     # spurious AlreadyRegistered.
-    global APILOADING
+    global LOADING
     if LOADING:
         return
     LOADING = True
@@ -50,4 +50,4 @@ def autodiscover():
         # to bubble up.
         __import__("%s.api" % app)
     # autodiscover was successful, reset loading flag.
-    APILOADING = False
+    LOADING = False
