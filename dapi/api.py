@@ -38,9 +38,9 @@ class Api(object):
         if bits[1] == "docs":
             return HttpResponse("documentation")
         else:
-            return self.dispatch(rest_of_url)
+            return self.dispatch(request, rest_of_url)
     
-    def dispatch(self, url):
+    def dispatch(self, request, url):
         auth_response = self.auth.check_request(request)
         if auth_response:
             return auth_response
