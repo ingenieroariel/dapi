@@ -19,7 +19,7 @@ class ApiSite(object):
         # TODO Root path is used to calculate urls under the old root() method
         # in order to maintain backwards compatibility we are leaving that in
         # so root_path isn't needed, not sure what to do about this.
-        self.root_path = 'admin/'
+        self.root_path = 'api/'
         if name is None:
             name = ''
         else:
@@ -31,13 +31,11 @@ class ApiSite(object):
           The model(s) should be Model classes, not
           instances.
   
-          If an admin class isn't given, it will use ModelAdmin (the default
-          admin options). If keyword arguments are given --
-          e.g., list_display --
-          they'll be applied as options to the admin class.
+          If an api class isn't given, it will use ModelAdmin (the default
+          api options). If keyword arguments are given -- e.g., list_display --
+          they'll be applied as options to the api class.
             
-          If a model is already registered, this will raise
-          AlreadyRegistered.
+          If a model is already registered, this will raise AlreadyRegistered.
           """
          
           if not api_class:
@@ -73,7 +71,7 @@ class ApiSite(object):
 
     def check_dependencies(self):
         """
-        Check that all things needed to run the admin have been correctly installed.
+        Check that all things needed to run the api have been correctly installed.
           
         The default implementation checks that LogEntry, ContentType and the
         auth context processor are installed.
@@ -87,7 +85,7 @@ class ApiSite(object):
         if 'django.core.context_processors.auth' not in settings.TEMPLATE_CONTEXT_PROCESSORS:
             raise ImproperlyConfigured("Put 'django.core.context_processors.auth' in your
                 TEMPLATE_CONTEXT_PROCESSORS setting in order to use the
-                admin application.")
+                api application.")
 
         def api_view(self, view):
         """
@@ -96,6 +94,7 @@ class ApiSite(object):
         ``self.has_permission``.
              
         You'll want to use this from within ``ApiSite.get_urls()``:
+        
         class MyApiSite(ApiSite):
             def get_urls(self):
                 from django.conf.urls.defaults import patterns, url
@@ -110,94 +109,94 @@ class ApiSite(object):
                 return self.login(request)
             return view(request, *args, **kwargs)
         return update_wrapper(inner, view)
-        def get_urls(self):
-            from django.conf.urls.defaults import patterns, url,include
-           
-            def wrap(view):
-                def wrapper(*args, **kwargs):
-                    return self.admin_view(view)(*args, **kwargs)
-                return update_wrapper(wrapper, view)
-            # Api-site-wide views.
-            urlpatterns = patterns('',
-            url(r'^$', 
-                wrap(self.index),
-                name='%sapi_index' % self.name),
-            url(r'^r/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
-                   'django.views.defaults.shortcut'),
-            # Add in each model's views.
-        for model, model_admin in self._registry.iteritems():
-                 urlpatterns += patterns('',
-                    url(r'^%s/%s/' % (model._meta.app_label, model._meta.module_name),
-                        include(model_admin.urls))
-                 )
-            return urlpatterns
+    def get_urls(self):
+        from django.conf.urls.defaults import patterns, url,include
+        
+        def wrap(view):
+            def wrapper(*args, **kwargs):
+                return self.api_view(view)(*args, **kwargs)
+            return update_wrapper(wrapper, view)
+        # Api-site-wide views.
+        urlpatterns = patterns('',
+        url(r'^$', 
+           wrap(self.index),
+           name='%sapi_index' % self.name),
+        url(r'^r/(?P<content_type_id>\d+)/(?P<object_id>.+)/$',
+            'django.views.defaults.shortcut'),
+       # Add in each model's views.
+    for model, model_api in self._registry.iteritems():
+        urlpatterns += patterns('',
+             url(r'^%s/%s/' % (model._meta.app_label, model._meta.module_name),
+                 include(model_api.urls))
+        )
+        return urlpatterns
        
-        def urls(self):
-            return self.get_urls()
-        urls = property(urls)
+    def urls(self):
+       return self.get_urls()
+    urls = property(urls)
+          
+    def index(self, request, extra_context=None):
+        """
+        Displays the main api index page, which lists all of the installed
+        apps that have been registered in this site.
+        """
+        app_dict = {}
+        user = request.user
+        for model, model_api in self._registry.items():
+           app_label = model._meta.app_label
+           has_module_perms = user.has_module_perms(app_label)
             
-        def index(self, request, extra_context=None):
-            """
-            Displays the main api index page, which lists all of the installed
-            apps that have been registered in this site.
-            """
-            app_dict = {}
-            user = request.user
-            for model, model_admin in self._registry.items():
-               app_label = model._meta.app_label
-               has_module_perms = user.has_module_perms(app_label)
+           if has_module_perms:
+               perms = {
+                   'add': model_api.has_add_permission(request),
+                   'change': model_api.has_change_permission(request),
+                   'delete': model_api.has_delete_permission(request),
+               }
                 
-               if has_module_perms:
-                   perms = {
-                       'add': model_admin.has_add_permission(request),
-                       'change': model_admin.has_change_permission(request),
-                       'delete': model_admin.has_delete_permission(request),
+               # Check whether user has any perm for this module.
+               # If so, add the module to the model_list.
+               if True in perms.values():
+                   model_dict = {
+                       'name': capfirst(model._meta.verbose_name_plural),
+                       'api_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
+                        'perms': perms,
                    }
-                   
-                   # Check whether user has any perm for this module.
-                   # If so, add the module to the model_list.
-                   if True in perms.values():
-                        model_dict = {
-                            'name': capfirst(model._meta.verbose_name_plural),
-                            'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
-                            'perms': perms,
+                   if app_label in app_dict:
+                        app_dict[app_label]['models'].append(model_dict)
+                   else:
+                        app_dict[app_label] = {
+                            'name': app_label.title(),
+                            'app_url': app_label + '/',
+                            'has_module_perms': has_module_perms,
+                            'models': [model_dict],
                         }
-                        if app_label in app_dict:
-                            app_dict[app_label]['models'].append(model_dict)
-                        else:
-                            app_dict[app_label] = {
-                                'name': app_label.title(),
-                                'app_url': app_label + '/',
-                                'has_module_perms': has_module_perms,
-                                'models': [model_dict],
-                            }
             
-            # Sort the apps alphabetically.
-            app_list = app_dict.values()
- 
-            # This is not required but nice to have
-            app_list.sort(lambda x, y: cmp(x['name'], y['name']))
-            
-            # Sort the models alphabetically within each app.
-            for app in app_list:
-                app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
-            
-            context = {
-                'title': _('Site api'),
-                'app_list': app_list,
-                'root_path': self.root_path,
-            }
-            context.update(extra_context or {})
-            return render_to_response(self.index_template or 'api/index.html', context,
-                context_instance=template.RequestContext(request)
-            )
+        # Sort the apps alphabetically.
+        app_list = app_dict.values()
+  
+        # This is not required but nice to have
+        app_list.sort(lambda x, y: cmp(x['name'], y['name']))
+          
+        # Sort the models alphabetically within each app.
+        for app in app_list:
+           app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
+        
+        context = {
+            'title': _('Site api'),
+            'app_list': app_list,
+            'root_path': self.root_path,
+         }
+        context.update(extra_context or {})
+        return render_to_response(self.index_template or 'api/index.html', context,
+            context_instance=template.RequestContext(request)
+        )
         index = never_cache(index)
 
     def app_index(self, request, app_label, extra_context=None):
         user = request.user
         has_module_perms = user.has_module_perms(app_label)
         app_dict = {}
-        for model, model_admin in self._registry.items():
+        for model, model_api in self._registry.items():
             if app_label == model._meta.app_label:
                 if has_module_perms:
                     perms = {
@@ -230,7 +229,7 @@ class ApiSite(object):
             # Sort the models alphabetically within each app.
             app_dict['models'].sort(lambda x, y: cmp(x['name'], y['name']))
             context = {
-                'title': _('%s administration') % capfirst(app_label),
+                'title': _('%s api') % capfirst(app_label),
                 'app_list': [app_dict],
                 'root_path': self.root_path,
             }
@@ -266,7 +265,7 @@ class ApiSite(object):
             if settings.DEBUG:
                 self.check_dependencies()
            
-            # Figure out the admin base URL path and stash it for later use
+            # Figure out the api base URL path and stash it for later use
             self.root_path = re.sub(re.escape(url) + '$', '', request.path)
            
             url = url.rstrip('/') # Trim trailing slash, if it exists.
@@ -301,9 +300,9 @@ class ApiSite(object):
                 api_obj = self._registry[model]
             except KeyError:
                 raise http.Http404("This model exists but has not been registered with the api site.")
-            return admin_obj(request, rest_of_url)
+            return api_obj(request, rest_of_url)
         model_page = never_cache(model_page)   
     
-    # This global object represents the default admin site, for the common case.
+    # This global object represents the default api site, for the common case.
     # You can instantiate ApiSite in your own code to create a custom api site.
     site = ApiSite()
