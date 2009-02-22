@@ -54,4 +54,4 @@ class Api(object):
  
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
-site = Api()
+api = Api()
