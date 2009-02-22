@@ -1,16 +1,10 @@
 import re
-from django import http, template
-from dapi import ModelApi
-from django.db.models.base import ModelBase
-from django.core.exceptions import ImproperlyConfigured
-from django.shortcuts import render_to_response
-from django.utils.functional import update_wrapper
-from django.utils.safestring import mark_safe
-from django.utils.text import capfirst
-from django.utils.translation import ugettext_lazy, ugettext as _
-from django.views.decorators.cache import never_cache
-from django.http import HttpResponse
+
 from django.conf import settings
+from django.http import HttpResponse
+from django.db.models.base import ModelBase
+
+from dapi import ModelApi
 
 
 class ApiSite(object):
