@@ -55,8 +55,10 @@ class CollectionApi(object):
         raise NotImplementedError()
     
     def handle_request(self, request):
-        # @@@ do something sensible
-        raise NotImplementedError()
+        # @@@ serialize the return objects
+        self.objects(request)
+        return HttpResponse("something good happened.")
+        
 
 
 class ModelApi(CollectionApi):
@@ -74,8 +76,11 @@ class ModelApi(CollectionApi):
             return re.compile(self.url_override)
         return re.compile(r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower()))
     
-    def handle_request(self, request):
-        return HttpResponse("%s responding" % self.model.__name__.lower())
+    def objects(self, *args, **kwargs):
+        return self.queryset(*args, **kwargs)
+    
+    def queryset(self, request):
+        return self.model._default_manager.all()
 
 # This global object represents the default API, for the common case.
 # You can instantiate Api in your own code to create a custom API.
