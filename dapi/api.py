@@ -4,8 +4,6 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.db.models.base import ModelBase
 
-from dapi import ModelApi
-
 
 class Api(object):
     
