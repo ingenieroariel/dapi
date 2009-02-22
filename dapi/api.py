@@ -48,6 +48,10 @@ class Api(object):
             if model not in self._registry:
                 raise NotRegistered('The model %s is not registered' % model.__name__)
             del self._registry[model]
-    
-    def __call__(self, request, url):
+        
+    def root(self, request, url):
         return HttpResponse("hello world")
+ 
+# This global object represents the default API, for the common case.
+# You can instantiate Api in your own code to create a custom API.
+site = Api()
