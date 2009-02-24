@@ -11,7 +11,7 @@ class Product(models.Model):
     image = models.ImageField(upload_to='products', blank=True, null=True)
     discount = models.DecimalField(max_digits=3, decimal_places=2)
     price = models.FloatField()
-    vendor = models.ForeignKey('Vendor')
+    vendor = models.ForeignKey('Vendor', blank=True, null=True)
 
 
 class Vendor(models.Model):

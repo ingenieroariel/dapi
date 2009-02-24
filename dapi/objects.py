@@ -22,4 +22,6 @@ class ModelCollectionObject(CollectionObject):
         model_field = self.opts.get_field(field)
         if isinstance(model_field, models.FileField):
             return value.url
+        if isinstance(model_field, models.ForeignKey):
+            return value.id
         return value
