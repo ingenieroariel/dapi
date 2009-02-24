@@ -8,6 +8,6 @@ class Product(models.Model):
     quantity = models.IntegerField()
     is_cool = models.BooleanField()
     creation_date = models.DateTimeField()
-    image = models.ImageField(upload_to='products')
+    image = models.ImageField(upload_to='products', blank=True, null=True)
     discount = models.DecimalField(max_digits=3, decimal_places=2)
     price = models.FloatField()
