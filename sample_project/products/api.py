@@ -7,6 +7,9 @@ from products.models import Product
 class ProductApi(dapi.ModelApi):
     responder_class = JSONResponder
     fields = ["name", "slug", "description", "creation_date",
-            "is_cool", "discount", "price" ]
+              "is_cool", "discount", "price", "image" ]
+
+    def prepare_image(self, object):
+        return object.image.url
 
 dapi.default_api.register(ProductApi(Product))
