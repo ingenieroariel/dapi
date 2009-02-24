@@ -1,0 +1,32 @@
+[
+    {
+        "pk": 1, 
+        "model": "products.product", 
+        "fields": {
+            "description": "A book about Django.", 
+            "image": "products/orangutan-pictures.jpg", 
+            "name": "Django Book", 
+            "price": 600000000.0, 
+            "discount": "0.1", 
+            "is_cool": false, 
+            "creation_date": "2009-02-24 11:04:11", 
+            "slug": "django_book", 
+            "quantity": 50
+        }
+    }, 
+    {
+        "pk": 2, 
+        "model": "products.product", 
+        "fields": {
+            "description": "A super powered Django Pony stuffed pink animal.", 
+            "image": "products/orangutan-pictures_.jpg", 
+            "name": "Django Pony", 
+            "price": 90000000000.0, 
+            "discount": "0.5", 
+            "is_cool": true, 
+            "creation_date": "2009-02-24 11:06:42", 
+            "slug": "django_pony", 
+            "quantity": 1
+        }
+    }
+]
