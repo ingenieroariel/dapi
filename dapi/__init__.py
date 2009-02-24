@@ -1,7 +1,9 @@
-from dapi.sites import ApiSite, site
+
+from dapi.api import Api, ModelApi, default_api
+
 # A flag to tell us if autodiscover is running.  autodiscover will set this to
 # True while running, and False when it finishes.
-APILOADING = False
+LOADING = False
  
 def autodiscover():
     """
@@ -14,7 +16,7 @@ def autodiscover():
     # the exception handler to resolve the handler500 view.  This prevents an
     # api.py module with errors from re-registering models and raising a
     # spurious AlreadyRegistered.
-    global APILOADING
+    global LOADING
     if LOADING:
         return
     LOADING = True
@@ -40,7 +42,7 @@ def autodiscover():
         # Step 2: use imp.find_module to find the app's admin.py. For some
         # reason imp.find_module raises ImportError if the app can't be found
         # but doesn't actually try to import the module. So skip this app if
-        # its admin.py doesn't exist
+        # its api.py doesn't exist
         try:
             imp.find_module('api', app_path)
         except ImportError:
@@ -50,4 +52,4 @@ def autodiscover():
         # to bubble up.
         __import__("%s.api" % app)
     # autodiscover was successful, reset loading flag.
-    APILOADING = False
+    LOADING = False

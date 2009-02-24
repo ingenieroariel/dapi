@@ -1,20 +1,29 @@
 from django.conf.urls.defaults import *
 
 import dapi
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
+dapi.autodiscover()
+
+from django.contrib import admin
+admin.autodiscover()
 
 
 urlpatterns = patterns('',
-    # Example:
-    # (r'^sample_project/', include('sample_project.foo.urls')),
-
-    # Uncomment the admin/doc line below and add 'django.contrib.admindocs' 
-    # to INSTALLED_APPS to enable admin documentation:
-    # (r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    # (r'^admin/(.*)', admin.site.root),
-    (r'^api/(.*)', dapi.site.root),
+    url(r'^admin/(.*)', admin.site.root),
+    url(r'^api/(.*)', dapi.default_api.root),
 )
+
+try:
+    import oauth
+    import oauth_provider
+except ImportError:
+    oauth_support = False
+else:
+    oauth_support = True
+
+if oauth_support:
+    from sample_project.api import oauth_api
+    
+    urlpatterns += patterns('',
+        url(r'oauth/', include('oauth_provider.urls')),
+        url(r'oauth_api/(.*)', oauth_api.root),
+    )
