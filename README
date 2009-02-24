@@ -10,3 +10,7 @@ It is still in the conception stage, here are some of the planned features:
  * A user can multiple apis per say which a single api can have its own
  authentication method for support for both http basic/digest, oauth for example
  * Will support both 1.0.X and will at least consider the new url routing features in 1.1
+
+Issue tracking at lighthouse:
+
+ http://ingenieroariel.lighthouseapp.com/projects/26069-dapi/tickets
