@@ -34,8 +34,8 @@ class Api(object):
         rest_of_url = "/".join(bits[1:])
         if not rest_of_url.endswith("/"):
             rest_of_url = rest_of_url + "/"
-        
-        if bits[1] == "docs":
+
+        if rest_of_url != '/' and bits[1] == "docs":
             return HttpResponse("documentation")
         else:
             return self.dispatch(request, rest_of_url)
