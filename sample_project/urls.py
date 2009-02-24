@@ -27,3 +27,9 @@ if oauth_support:
         url(r'oauth/', include('oauth_provider.urls')),
         url(r'oauth_api/(.*)', oauth_api.root),
     )
+
+if settings.SERVE_MEDIA:
+    urlpatterns += patterns('',
+        (r'^site_media/(?P<path>.*)$', 'django.views.static.serve',
+            {'document_root': os.path.join(os.path.dirname(__file__), "site_media")}),
+    )
