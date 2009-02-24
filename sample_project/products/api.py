@@ -9,7 +9,7 @@ class ProductApi(dapi.ModelApi):
     fields = ["name", "slug", "description", "creation_date",
               "is_cool", "discount", "price", "image" ]
 
-    def prepare_image(self, object):
-        return object.image.url
+    def prepare_image(self, obj):
+        return obj.image.url
 
 dapi.default_api.register(ProductApi(Product))
