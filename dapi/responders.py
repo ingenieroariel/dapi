@@ -30,10 +30,10 @@ class Responder(object):
             for field in api.fields:
                 value = obj_instance.value(field)
                 if hasattr(api, "prepare_%s" % field):
-                    value = getattr("prepare_%s" % field)(obj)
+                    value = getattr(api, "prepare_%s" % field)(obj)
                 obj_data[field] = value
             self.objects.append(obj_data)
-            
+
 
 class JSONResponder(Responder):
     mime_type = "application/json"
