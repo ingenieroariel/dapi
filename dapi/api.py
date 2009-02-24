@@ -92,7 +92,8 @@ class ModelApi(CollectionApi):
     def url(self):
         if self.url_override:
             return self.url_override
-        return r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower())
+        return r"^%s/%s(\.(?P<format>[a-z]*))|/$" % (
+                 self.opts.app_label, self.model.__name__.lower())
     
     def objects(self, *args, **kwargs):
         return self.queryset(*args, **kwargs).iterator()
