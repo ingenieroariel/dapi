@@ -31,7 +31,7 @@ class Api(object):
         url = url.rstrip("/")
         bits = url.split("/")
         
-        rest_of_url = "/".join(bits[1:])
+        rest_of_url = "/".join(bits)
         if not rest_of_url.endswith("/"):
             rest_of_url = rest_of_url + "/"
 
