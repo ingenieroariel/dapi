@@ -20,4 +20,6 @@ class ModelCollectionObject(CollectionObject):
     def value(self, field):
         value = super(ModelCollectionObject, self).value(field)
         model_field = self.opts.get_field(field)
+        if isinstance(model_field, models.FileField):
+            return value.url
         return value
