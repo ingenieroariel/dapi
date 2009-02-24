@@ -4,3 +4,4 @@ local_settings.py
 *.egg-info
 pip-log.txt
 build
+dev.db
