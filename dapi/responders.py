@@ -16,7 +16,7 @@ class Responder(object):
     def __init__(self):
         self.stream = StringIO()
     
-    def handle_request(self, request, api):
+    def handle_request(self, request, api, request_method):
         self.prepare_serialization(api.objects(request), api)
         # serialize the objects from the api
         self.serialize(api)
