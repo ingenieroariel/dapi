@@ -16,3 +16,6 @@ Issue tracking at lighthouse:
  http://ingenieroariel.lighthouseapp.com/projects/26069-dapi/tickets
 
 Sample images taken from Wikimedia Commons
+
+Dapi uses an important part of the code and conventions of
+django-rest-interface

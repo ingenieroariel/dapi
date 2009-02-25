@@ -111,7 +111,7 @@ class Api(object):
         if request_method not in self.permitted_methods:
             raise HttpMethodNotAllowed
 
-        auth_response = self.auth.check_request(request)
+        auth_response = self.authentication.check_request(request)
         if auth_response:
             return auth_response
         response = None
@@ -162,7 +162,7 @@ class ModelApi(CollectionApi):
     def url(self):
         if self.url_override:
             return self.url_override
-        return r"^%s/%s/$" % (self.opts.app_label, self.model.__name__.lower())
+        return r"^%s/%s(\.(?P<format>[a-z]*)|)/$" % (self.opts.app_label, self.model.__name__.lower())
     
     def objects(self, *args, **kwargs):
         return self.queryset(*args, **kwargs).iterator()
